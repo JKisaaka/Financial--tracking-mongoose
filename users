@@ -1,0 +1,66 @@
+const mongoose = require('mongoose');
+const User = require('./User');
+const Category = require('./Category');
+const Income = require('./Income');
+const Expense = require('./Expense');
+const Budget = require('./Budget');
+
+mongoose.connect('mongodb://localhost:27017/financial_tracker', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(async () => {
+    console.log('✅ Connected to MongoDB');
+
+    await User.deleteMany({});
+    await Category.deleteMany({});
+    await Income.deleteMany({});
+    await Expense.deleteMany({});
+    await Budget.deleteMany({});
+
+    const user = await User.create({
+        username: 'johndoe',
+        email: 'john@example.com',
+        passwordHash: 'hashedpassword123'
+    });
+
+    const incomeCategory = await Category.create({
+        userId: user._id,
+        name: 'Salary',
+        type: 'income'
+    });
+
+    const expenseCategory = await Category.create({
+        userId: user._id,
+        name: 'Groceries',
+        type: 'expense'
+    });
+
+    await Income.create({
+        userId: user._id,
+        categoryId: incomeCategory._id,
+        amount: 3000,
+        source: 'Company X',
+        receivedAt: new Date('2025-07-01'),
+        note: 'July Salary'
+    });
+
+    await Expense.create({
+        userId: user._id,
+        categoryId: expenseCategory._id,
+        amount: 150,
+        spentAt: new Date('2025-07-05'),
+        note: 'Supermarket'
+    });
+
+    await Budget.create({
+        userId: user._id,
+        categoryId: expenseCategory._id,
+        monthYear: '2025-07',
+        amount: 500
+    });
+
+    console.log('🌱 Seed data inserted');
+    process.exit();
+}).catch(err => {
+    console.error('❌ Error seeding data:', err);
+});
